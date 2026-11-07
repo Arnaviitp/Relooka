@@ -1,0 +1,58 @@
+name: LoopWear CI & Nightly Scheduler
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  # Free-tier external cron scheduler: recomputes RFM tiers nightly at 00:00 UTC
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  test_and_build:
+    name: Backend Tests & Frontend Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Backend Dependencies
+        run: npm ci --prefix backend
+
+      - name: Run Backend Integration & Unit Tests
+        run: npm run test --prefix backend
+        env:
+          NODE_ENV: test
+          JWT_ACCESS_SECRET: github_ci_secret_key_access_32chars!
+          JWT_REFRESH_SECRET: github_ci_secret_key_refresh_32chars!
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          DEV_BYPASS_CAPTCHA: 'true'
+
+      - name: Install Frontend Dependencies
+        run: npm ci --prefix frontend
+
+      - name: Build Frontend (Vite)
+        run: npm run build --prefix frontend
+
+  nightly_tier_cron:
+    name: Trigger Nightly Tier Recompute (If Scheduled)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Trigger Remote Tier Recompute via Protected Secret
+        run: |
+          if [ -n "${{ secrets.HOSTED_API_URL }}" ] && [ -n "${{ secrets.CRON_SECRET }}" ]; then
+            curl -X POST "${{ secrets.HOSTED_API_URL }}/api/v1/tiers/nightly-recompute" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              -H "Content-Type: application/json"
+          else
+            echo "Secrets not configured or running in dry-run mode."
+          fi
