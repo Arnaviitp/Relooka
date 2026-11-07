@@ -29,11 +29,12 @@ async function connectDB(uri = null) {
         if (!global.__DEV_MONGO_SERVER__) {
           const fs = require('fs');
           const path = require('path');
-          const devTemp = path.resolve(__dirname, '../../../.mongo-temp');
-          if (!fs.existsSync(devTemp)) fs.mkdirSync(devTemp, { recursive: true });
+          const devTemp = path.resolve(__dirname, '../../../../.mongo-temp');
+          const devDbPath = path.join(devTemp, 'dev-db');
+          if (!fs.existsSync(devDbPath)) fs.mkdirSync(devDbPath, { recursive: true });
           global.__DEV_MONGO_SERVER__ = await MongoMemoryServer.create({
             instance: {
-              dbPath: path.join(devTemp, 'dev-db'),
+              dbPath: devDbPath,
               tmpDir: devTemp
             }
           });
