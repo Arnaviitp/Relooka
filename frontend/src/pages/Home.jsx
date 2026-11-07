@@ -171,8 +171,8 @@ export default function Home() {
             <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Curated Collections</div>
             <h2 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-slate-900">Rent for Every Occasion</h2>
           </div>
-          <Link to="/feed" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-            <span>View All</span>
+          <Link to="/categories" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+            <span>Explore Categories</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

@@ -9,8 +9,12 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RenterFeed from './pages/RenterFeed';
+import Categories from './pages/Categories';
 import ListingDetail from './pages/ListingDetail';
 import Checkout from './pages/Checkout';
+import Cart from './pages/Cart';
+import Feedback from './pages/Feedback';
+import Info from './pages/Info';
 import LenderDashboard from './pages/LenderDashboard';
 import LenderUpload from './pages/LenderUpload';
 import HubDashboard from './pages/HubDashboard';
@@ -55,6 +59,7 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/feed" element={<RenterFeed />} />
+              <Route path="/categories" element={<Categories />} />
               <Route path="/listings/:id" element={<ListingDetail />} />
 
               {/* Renter Actions */}
@@ -63,6 +68,36 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Checkout />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Closet Cart (Items I Have Listed + Items I Am Renting) */}
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Two-Way Feedback */}
+              <Route
+                path="/feedback"
+                element={
+                  <ProtectedRoute>
+                    <Feedback />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* User Account Info & Tier & Transactions */}
+              <Route
+                path="/info"
+                element={
+                  <ProtectedRoute>
+                    <Info />
                   </ProtectedRoute>
                 }
               />

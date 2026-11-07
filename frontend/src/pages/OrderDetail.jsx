@@ -13,7 +13,10 @@ import {
   FileText,
   User,
   ArrowRight,
-  Send
+  Send,
+  Copy,
+  Check,
+  Info as InfoIcon
 } from 'lucide-react';
 
 const STATE_STEPS = [
@@ -55,6 +58,7 @@ export default function OrderDetail() {
     comment: ''
   });
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [copiedOtp, setCopiedOtp] = useState(false);
 
   const fetchOrderDetails = async () => {
     try {
@@ -184,6 +188,72 @@ export default function OrderDetail() {
           )}
         </div>
       </div>
+
+      {/* Screen 6: Delivery Handover - OTP Prompt + ID Reminder for the Renter (Rule 4 Mandate) */}
+      {isRenter && (
+        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 rounded-3xl p-6 sm:p-7 text-white shadow-lg border border-emerald-700/50 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-400/30">
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Rule 4 Mandate: Delivery Handover Check</span>
+              </div>
+              <h2 className="font-serif-luxury text-xl sm:text-2xl font-bold tracking-tight">
+                Delivery Handover OTP & Government ID Requirement
+              </h2>
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                The delivery agent must physically verify your government ID (Aadhaar / Voter ID / Ration Card) AND confirm the registered 6-digit OTP before releasing your outfit.
+              </p>
+            </div>
+
+            {order.handover?.devOtp && (
+              <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 text-center space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">
+                  Handover OTP Code
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-2xl font-black text-emerald-300 tracking-widest">
+                    {order.handover.devOtp}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.handover.devOtp);
+                      setCopiedOtp(true);
+                      setTimeout(() => setCopiedOtp(false), 2000);
+                    }}
+                    className="p-1 text-slate-300 hover:text-white transition"
+                    title="Copy OTP"
+                  >
+                    {copiedOtp ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-white/10 text-xs">
+            <div className="flex items-start gap-2.5 bg-white/5 p-3 rounded-xl border border-white/5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-white">Physical ID Inspection:</strong>
+                <p className="text-slate-300 text-[11px] mt-0.5">
+                  Keep your government ID ready. Full card numbers are NEVER stored or photographed—only masked reference is matched.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 bg-white/5 p-3 rounded-xl border border-white/5">
+              <User className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-white">Representative Allowed:</strong>
+                <p className="text-slate-300 text-[11px] mt-0.5">
+                  A family member or representative may receive it on your behalf. The agent will record their name and check their ID before OTP verification.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 14-Step State Machine Timeline */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">

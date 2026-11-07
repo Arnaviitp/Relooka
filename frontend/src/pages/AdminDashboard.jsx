@@ -8,7 +8,9 @@ import {
   Sparkles,
   Users,
   Search,
-  AlertCircle
+  AlertCircle,
+  Bell,
+  Check
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -26,6 +28,10 @@ export default function AdminDashboard() {
   const [newScore, setNewScore] = useState(4.5);
   const [scoreMessage, setScoreMessage] = useState('');
 
+  // In-app notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(true);
+
   const loadPendingReviews = async () => {
     try {
       const res = await api.get('/users/admin/id-reviews');
@@ -36,8 +42,20 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  const loadNotifications = async () => {
+    setLoadingNotifs(true);
+    try {
+      const res = await api.get('/notifications');
+      if (res.success && res.data) {
+        setNotifications(res.data);
+      }
+    } catch (_) {}
+    setLoadingNotifs(false);
+  };
+
   useEffect(() => {
     loadPendingReviews();
+    loadNotifications();
   }, []);
 
   const handleApprove = async (userId) => {
@@ -262,6 +280,81 @@ export default function AdminDashboard() {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* In-App Notifications List (Rule M6 / Screen 9) */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h2 className="font-semibold text-slate-900 text-lg flex items-center gap-2">
+              <Bell className="w-5 h-5 text-emerald-600" />
+              <span>In-App System Notifications</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Zero-Budget Mandate: In-app notification queue is the primary channel, with swappable FCM push adapter as fallback.
+            </p>
+          </div>
+          <button
+            onClick={loadNotifications}
+            className="text-xs text-emerald-700 hover:underline font-semibold flex items-center gap-1"
+          >
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        {loadingNotifs ? (
+          <div className="py-10 text-center text-slate-400 text-sm">Loading notifications...</div>
+        ) : notifications.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-sm">
+            No system notifications yet.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 max-h-[350px] overflow-y-auto">
+            {notifications.map((n) => (
+              <div
+                key={n._id}
+                className={`p-4 flex items-start justify-between gap-4 transition ${
+                  n.isRead ? 'bg-white opacity-70' : 'bg-emerald-50/30'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    {!n.isRead && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+                    )}
+                    <span className="font-semibold text-xs text-slate-900">{n.title}</span>
+                    <span className="text-[10px] font-mono uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                      {n.type || 'SYSTEM'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">{n.message}</p>
+                  <div className="text-[10px] text-slate-400">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </div>
+                </div>
+
+                {!n.isRead && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api.patch(`/notifications/${n._id}/read`, {});
+                        setNotifications((prev) =>
+                          prev.map((item) =>
+                            item._id === n._id ? { ...item, isRead: true } : item
+                          )
+                        );
+                      } catch (_) {}
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                    title="Mark as Read"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Reject Modal */}

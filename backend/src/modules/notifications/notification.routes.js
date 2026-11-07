@@ -9,3 +9,4 @@ router.get('/', notificationController.getMyNotifications);
 router.patch('/:id/read', notificationController.markAsRead);
 
 module.exports = router;
+
