@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
 import {
   ShieldCheck,
   Mail,
@@ -93,6 +92,7 @@ export default function Register() {
 
       // Auto-submit ID verification queue item if backend supports it
       try {
+        const { api } = await import('../services/api');
         await api.post('/users/me/id-verification', {
           idType: formData.idType,
           idNumber: formData.idReferenceLast4,
