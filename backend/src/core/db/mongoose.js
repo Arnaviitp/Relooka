@@ -12,7 +12,7 @@ async function connectDB(uri = null) {
 
   try {
     const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 2500,
       autoIndex: true
     });
     isConnected = true;
@@ -21,6 +21,23 @@ async function connectDB(uri = null) {
     }
     return conn.connection;
   } catch (error) {
+    if (env.NODE_ENV === 'development' && !uri) {
+      console.warn(`[MongoDB] Could not connect to external MongoDB at ${mongoUri}.`);
+      console.log(`[MongoDB] Initializing embedded in-memory MongoDB for zero-setup local development...`);
+      try {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        if (!global.__DEV_MONGO_SERVER__) {
+          global.__DEV_MONGO_SERVER__ = await MongoMemoryServer.create();
+        }
+        const memUri = global.__DEV_MONGO_SERVER__.getUri();
+        const conn = await mongoose.connect(memUri, { autoIndex: true });
+        isConnected = true;
+        console.log(`[MongoDB] Embedded in-memory MongoDB ready at ${memUri}`);
+        return conn.connection;
+      } catch (memErr) {
+        console.error(`[MongoDB] Failed to start in-memory Mongo: ${memErr.message}`);
+      }
+    }
     console.error(`[MongoDB] Connection error: ${error.message}`);
     throw error;
   }
@@ -30,6 +47,10 @@ async function disconnectDB() {
   if (isConnected || mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
     isConnected = false;
+  }
+  if (global.__DEV_MONGO_SERVER__) {
+    await global.__DEV_MONGO_SERVER__.stop();
+    global.__DEV_MONGO_SERVER__ = null;
   }
 }
 
