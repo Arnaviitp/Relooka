@@ -111,5 +111,7 @@ class PricingService {
   }
 }
 
-module.exports = new PricingService();
+const pricingService = new PricingService();
+pricingService.PricingService = PricingService;
+module.exports = pricingService;
 

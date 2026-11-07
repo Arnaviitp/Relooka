@@ -358,5 +358,49 @@ describe('Milestone 4: Order Lifecycle State Machine, Deposit Ledger & Handover'
     expect(closeRes.body.data.depositLedger.releasedAmount).toBe(holdAmount - damageAmount);
     expect(closeRes.body.data.depositLedger.deductions[0].amount).toBe(damageAmount);
   });
+
+  test('payment webhook confirms order with signature verification and is idempotent', async () => {
+    // 1. Create order
+    const createRes = await request(app)
+      .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${renterToken}`)
+      .send({
+        listingId: activeListing._id.toString(),
+        rentalDays: 2,
+        deliveryAddress: { street: '12 Marine Drive', city: 'Mumbai', pincode: '400020' }
+      });
+    expect(createRes.status).toBe(201);
+    const orderId = createRes.body.data.order._id;
+
+    // 2. Reject webhook with invalid signature
+    const invalidWebhook = await request(app)
+      .post('/api/v1/orders/webhook/payment')
+      .set('x-razorpay-signature', 'invalid_signature')
+      .send({ orderId, paymentId: 'pay_wh_001' });
+    expect(invalidWebhook.status).toBe(400);
+    expect(invalidWebhook.body.error.code).toBe('INVALID_SIGNATURE');
+
+    // 3. Accept valid webhook
+    const validWebhook = await request(app)
+      .post('/api/v1/orders/webhook/payment')
+      .set('x-razorpay-signature', 'valid_test_sig')
+      .set('x-razorpay-event-id', `evt_${orderId}`)
+      .send({ orderId, paymentId: 'pay_wh_001' });
+    expect(validWebhook.status).toBe(200);
+    expect(validWebhook.body.data.processed).toBe(true);
+
+    const verifiedOrder = await Order.findById(orderId);
+    expect(verifiedOrder.status).toBe('CONFIRMED');
+    expect(verifiedOrder.depositLedger.status).toBe('HELD');
+
+    // 4. Repeated webhook is idempotent
+    const repeatWebhook = await request(app)
+      .post('/api/v1/orders/webhook/payment')
+      .set('x-razorpay-signature', 'valid_test_sig')
+      .set('x-razorpay-event-id', `evt_${orderId}`)
+      .send({ orderId, paymentId: 'pay_wh_001' });
+    expect(repeatWebhook.status).toBe(200);
+    expect(repeatWebhook.body.data.idempotent).toBe(true);
+  });
 });
 

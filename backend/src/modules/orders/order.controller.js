@@ -43,6 +43,48 @@ class OrderController {
     }
   }
 
+  async handlePaymentWebhook(req, res, next) {
+    try {
+      const signature = req.headers['x-razorpay-signature'] || req.headers['x-gateway-signature'] || req.body?.signature;
+      const eventId = req.headers['x-razorpay-event-id'] || req.body?.id || `evt_${Date.now()}`;
+
+      const { paymentAdapter } = require('../../core/adapters/payment.adapter');
+      if (paymentAdapter.isEventProcessed(eventId)) {
+        return successResponse(res, { idempotent: true }, 'Webhook already processed');
+      }
+
+      const isValid = paymentAdapter.verifyWebhookSignature({
+        payload: req.body,
+        signature
+      });
+
+      if (!isValid) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_SIGNATURE', message: 'Webhook signature verification failed' }
+        });
+      }
+
+      const orderId = req.body.orderId || req.body.payload?.payment?.entity?.notes?.orderId;
+      const paymentId = req.body.paymentId || req.body.payload?.payment?.entity?.id || `pay_${Date.now()}`;
+      const gatewayOrderId = req.body.gatewayOrderId || req.body.payload?.payment?.entity?.order_id;
+
+      if (orderId) {
+        await orderService.confirmPayment({
+          orderId,
+          paymentId,
+          gatewayOrderId,
+          renterId: null
+        });
+      }
+
+      paymentAdapter.markEventProcessed(eventId);
+      return successResponse(res, { processed: true, eventId }, 'Webhook processed successfully');
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async lenderSubmit(req, res, next) {
     try {
       const { id } = req.params;

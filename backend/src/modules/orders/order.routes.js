@@ -4,6 +4,9 @@ const orderController = require('./order.controller');
 const { authenticate } = require('../../core/middleware/auth.middleware');
 const { requireRole, requireCapability } = require('../../core/middleware/roleGuard.middleware');
 
+// Webhook endpoint (unauthenticated, protected by gateway signature check)
+router.post('/webhook/payment', orderController.handlePaymentWebhook);
+
 router.use(authenticate);
 
 // Order creation & list

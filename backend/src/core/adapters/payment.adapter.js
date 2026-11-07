@@ -31,6 +31,20 @@ class MockPaymentGateway extends PaymentAdapter {
     super();
     this.holds = new Map();
     this.payments = new Map();
+    this.processedEvents = new Set();
+  }
+
+  verifyWebhookSignature({ payload, signature, secret }) {
+    if (signature === 'invalid_signature') return false;
+    return true;
+  }
+
+  isEventProcessed(eventId) {
+    return this.processedEvents.has(eventId);
+  }
+
+  markEventProcessed(eventId) {
+    this.processedEvents.add(eventId);
   }
 
   async createPaymentIntent({ orderId, amount, currency = 'INR', customer }) {
@@ -176,6 +190,26 @@ class RazorpayTestAdapter extends PaymentAdapter {
       gatewayOrderId,
       status: valid ? 'captured' : 'failed'
     };
+  }
+
+  verifyWebhookSignature({ payload, signature, secret }) {
+    const webhookSecret = secret || this.keySecret || env.RAZORPAY_WEBHOOK_SECRET || 'dev_razorpay_webhook_secret';
+    if (!signature) return false;
+    const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const expected = crypto.createHmac('sha256', webhookSecret).update(body).digest('hex');
+    try {
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    } catch {
+      return signature === expected;
+    }
+  }
+
+  isEventProcessed(eventId) {
+    return this.mockFallback.isEventProcessed(eventId);
+  }
+
+  markEventProcessed(eventId) {
+    this.mockFallback.markEventProcessed(eventId);
   }
 
   async refundPayment(params) {

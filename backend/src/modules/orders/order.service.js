@@ -119,6 +119,11 @@ class OrderService {
       throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
     }
 
+    // Idempotency: If already confirmed, return order immediately
+    if (order.status === ORDER_STATES.CONFIRMED) {
+      return order;
+    }
+
     if (!order.canTransitionTo(ORDER_STATES.CONFIRMED)) {
       throw new AppError(`Cannot confirm payment from state: ${order.status}`, 400, 'INVALID_TRANSITION');
     }
@@ -150,8 +155,8 @@ class OrderService {
     // Transition state machine
     order.logTransition({
       toState: ORDER_STATES.CONFIRMED,
-      actorId: renterId,
-      actorRole: 'renter',
+      actorId: renterId || (order.renterId._id ? order.renterId._id : order.renterId),
+      actorRole: renterId ? 'renter' : 'system_webhook',
       action: 'PAYMENT_CAPTURED_AND_DEPOSIT_HELD',
       metadata: {
         paymentId: verification.paymentId,

@@ -120,6 +120,41 @@ describe('Milestone 3: Rule-Driven Pricing, Listings & Partner Laundry Hubs', ()
       // 3000 base deposit with 25% Platinum reduction = 2250
       expect(quote.securityDeposit.payableDeposit).toBe(2250);
     });
+
+    test('pricing rules: changing config changes output with zero code changes', () => {
+      const { PricingService } = require('../../src/modules/pricing/pricing.service');
+      const baseService = new PricingService();
+      const quoteDefault = baseService.calculateRentalQuote({
+        dailyRent: 1000,
+        retailPrice: 10000,
+        rentalDays: 3,
+        renterTier: 'Silver'
+      });
+      expect(quoteDefault.fees.laundryFee).toBe(150);
+      expect(quoteDefault.lenderPayout.commissionPercent).toBe(15);
+      expect(quoteDefault.securityDeposit.payableDeposit).toBe(3000);
+
+      // CFO updates pricing policy via config object (no code change)
+      const customCfoConfig = {
+        ...require('../../src/core/config/pricing.config'),
+        platformCommissionPercent: 20,
+        laundryFee: 250,
+        securityDepositPercent: 40
+      };
+      const cfoService = new PricingService(customCfoConfig);
+      const quoteCustom = cfoService.calculateRentalQuote({
+        dailyRent: 1000,
+        retailPrice: 10000,
+        rentalDays: 3,
+        renterTier: 'Silver'
+      });
+
+      // Output changes immediately based purely on config
+      expect(quoteCustom.fees.laundryFee).toBe(250);
+      expect(quoteCustom.lenderPayout.commissionPercent).toBe(20);
+      expect(quoteCustom.lenderPayout.commissionAmount).toBe(600); // 20% of 3000
+      expect(quoteCustom.securityDeposit.payableDeposit).toBe(4000); // 40% of 10000
+    });
   });
 
   describe('Listing Creation, Media Limits & Hub Assignment', () => {
