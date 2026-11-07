@@ -172,6 +172,104 @@ class UserService {
       history: user.tierHistory
     };
   }
+
+  async getCartView(userId) {
+    const Listing = require('../listings/listing.model');
+    const { Order } = require('../orders/order.model');
+
+    const [activeListings, itemsIAmRenting] = await Promise.all([
+      Listing.find({
+        lenderId: userId,
+        status: { $in: ['active', 'rented', 'pending_qc', 'draft'] }
+      }).populate('assignedHubId', 'name city partnerLaundryName'),
+      Order.find({
+        renterId: userId,
+        status: { $nin: ['CLOSED', 'CANCELLED'] }
+      })
+        .populate('listingId', 'title brand dailyRent photos category size color retailPrice')
+        .populate('hubId', 'name city partnerLaundryName')
+        .sort({ createdAt: -1 })
+    ]);
+
+    return {
+      activeListings,
+      itemsIAmRenting,
+      summary: {
+        activeListingsCount: activeListings.length,
+        itemsRentedOutCount: activeListings.filter(l => l.status === 'rented').length,
+        itemsRentingCount: itemsIAmRenting.length,
+        totalDepositHeld: itemsIAmRenting.reduce((sum, o) => sum + (o.depositLedger?.heldAmount || 0), 0)
+      }
+    };
+  }
+
+  async getUserInfo(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    }
+
+    const { Order } = require('../orders/order.model');
+    const pastOrders = await Order.find({
+      $or: [{ renterId: userId }, { lenderId: userId }],
+      status: 'CLOSED'
+    })
+      .select('orderCode orderNumber status pricing depositLedger createdAt updatedAt rentalDays')
+      .populate('listingId', 'title brand category')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const pastTransactions = pastOrders.map(o => ({
+      orderId: o._id,
+      orderCode: o.orderCode || o.orderNumber,
+      role: String(o.renterId) === String(userId) ? 'renter' : 'lender',
+      totalAmount: o.pricing?.totalRenterPayable || o.pricing?.totalAmount || 0,
+      depositStatus: o.depositLedger?.status,
+      depositReleased: o.depositLedger?.releasedAmount || 0,
+      depositDeducted: o.depositLedger?.deductedAmount || 0,
+      date: o.createdAt
+    }));
+
+    const benefits = tierConfig.tierBenefits[user.tier] || tierConfig.tierBenefits.Silver;
+    const loopwearId = `LW-${user._id.toString().slice(-8).toUpperCase()}`;
+
+    // Masked saved payment detail for zero-budget local demo
+    const emailPrefix = user.email ? user.email.split('@')[0].slice(0, 2) : 'us';
+    const maskedPayment = {
+      type: 'UPI',
+      handle: `${emailPrefix}***@okhdfcbank`,
+      isDefault: true,
+      lastUsed: user.updatedAt || user.createdAt
+    };
+
+    return {
+      loopwear_id: loopwearId,
+      tier: {
+        current: user.tier,
+        score: user.tierScore,
+        benefits: {
+          platformFeeDiscountPercent: benefits.platformFeeDiscountPercent || 0,
+          depositReductionPercent: benefits.depositReductionPercent || 0,
+          prioritySupport: benefits.prioritySupport || false
+        }
+      },
+      loopwearScore: user.loopwearScore || 3.0,
+      accountDetails: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        capabilities: user.capabilities,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+        idVerificationStatus: user.idVerification?.status || 'unverified',
+        createdAt: user.createdAt
+      },
+      pastTransactions,
+      maskedSavedPaymentDetails: maskedPayment
+    };
+  }
 }
 
 module.exports = new UserService();

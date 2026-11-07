@@ -4,11 +4,15 @@ const tierConfig = require('../../core/config/tiers.config');
 const feedbackService = require('../feedback/feedback.service');
 
 class TierService {
+  constructor(config = tierConfig) {
+    this.config = config;
+  }
+
   /**
    * Normalize recency days to 1-5 score using configurable bands
    */
   _normalizeRecency(days) {
-    for (const band of tierConfig.normalizationBands.recency) {
+    for (const band of this.config.normalizationBands.recency) {
       if (days <= band.maxDays) {
         return band.score;
       }
@@ -20,7 +24,7 @@ class TierService {
    * Normalize frequency count to 1-5 score
    */
   _normalizeFrequency(count) {
-    for (const band of tierConfig.normalizationBands.frequency) {
+    for (const band of this.config.normalizationBands.frequency) {
       if (count >= band.minCount) {
         return band.score;
       }
@@ -32,7 +36,7 @@ class TierService {
    * Normalize monetary amount to 1-5 score
    */
   _normalizeMonetary(amount) {
-    for (const band of tierConfig.normalizationBands.monetary) {
+    for (const band of this.config.normalizationBands.monetary) {
       if (amount >= band.minAmount) {
         return band.score;
       }
@@ -158,5 +162,7 @@ class TierService {
   }
 }
 
-module.exports = new TierService();
+const tierService = new TierService();
+tierService.TierService = TierService;
+module.exports = tierService;
 

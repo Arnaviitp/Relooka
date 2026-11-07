@@ -18,6 +18,7 @@ const listingRoutes = require('./modules/listings/listing.routes');
 const orderRoutes = require('./modules/orders/order.routes');
 const feedbackRoutes = require('./modules/feedback/feedback.routes');
 const tierRoutes = require('./modules/tiers/tier.routes');
+const notificationRoutes = require('./modules/notifications/notification.routes');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/v1/listings', listingRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/tiers', tierRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // 404 Route Not Found
 app.use('*', (req, res, next) => {

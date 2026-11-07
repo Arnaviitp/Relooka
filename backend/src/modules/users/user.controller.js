@@ -89,6 +89,24 @@ class UserController {
       next(err);
     }
   }
+
+  async getCartView(req, res, next) {
+    try {
+      const cart = await userService.getCartView(req.user.id);
+      return successResponse(res, cart, 'Cart and active rental summary retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getUserInfo(req, res, next) {
+    try {
+      const info = await userService.getUserInfo(req.user.id);
+      return successResponse(res, info, 'User comprehensive info retrieved');
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new UserController();

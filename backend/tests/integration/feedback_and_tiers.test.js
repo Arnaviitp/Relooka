@@ -230,6 +230,118 @@ describe('Milestone 5: Two-Way Feedback, RFM Tier Engine & Scheduled Nightly Job
       expect(updatedUser.tierHistory.length).toBeGreaterThanOrEqual(1);
       expect(updatedUser.tier).toBe(result.newTier);
     });
+
+    test('band changes need zero code changes (config-driven tier thresholds and bands)', async () => {
+      const { TierService } = require('../../src/modules/tiers/tier.service');
+      const baseTierConfig = require('../../src/core/config/tiers.config');
+
+      // Custom configuration: Low frequency threshold where 2 orders already gives max score 5,
+      // and Diamond threshold lowered to 100
+      const customConfig = {
+        ...baseTierConfig,
+        normalizationBands: {
+          ...baseTierConfig.normalizationBands,
+          frequency: [
+            { minCount: 2, score: 5 }, // lowered from 20 to 2
+            { minCount: 1, score: 3 },
+            { minCount: 0, score: 1 }
+          ]
+        },
+        tierThresholds: {
+          Diamond: 100, // lowered from 400
+          Platinum: 50,
+          Gold: 20,
+          Silver: 0
+        }
+      };
+
+      const customTierService = new TierService(customConfig);
+      expect(customTierService._normalizeFrequency(2)).toBe(5);
+      expect(customTierService._normalizeFrequency(1)).toBe(3);
+      expect(customTierService._normalizeFrequency(0)).toBe(1);
+    });
+  });
+
+  describe('Milestone 7: Cart View, Info & In-App Notifications Endpoints', () => {
+    test('GET /api/v1/users/me/cart returns active listings, active rentals, and summary', async () => {
+      const res = await request(app)
+        .get('/api/v1/users/me/cart')
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toHaveProperty('activeListings');
+      expect(res.body.data).toHaveProperty('itemsIAmRenting');
+      expect(res.body.data).toHaveProperty('summary');
+      expect(res.body.data.summary).toHaveProperty('activeListingsCount');
+      expect(res.body.data.summary).toHaveProperty('itemsRentingCount');
+    });
+
+    test('GET /api/v1/users/me/info returns loopwear_id, tier, accountDetails, pastTransactions, and masked payment', async () => {
+      const res = await request(app)
+        .get('/api/v1/users/me/info')
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      const info = res.body.data;
+      expect(info.loopwear_id).toMatch(/^LW-[A-Z0-9]{8}$/);
+      expect(info.accountDetails.email).toBe('rohan.tier@rent.in');
+      expect(info.tier).toHaveProperty('current');
+      expect(info.tier).toHaveProperty('benefits');
+      expect(info).toHaveProperty('loopwearScore');
+      expect(Array.isArray(info.pastTransactions)).toBe(true);
+      expect(info.maskedSavedPaymentDetails.type).toBe('UPI');
+      expect(info.maskedSavedPaymentDetails.handle).toContain('***');
+    });
+
+    test('GET /api/v1/notifications and mark as read', async () => {
+      const { notificationAdapter } = require('../../src/core/adapters/push.adapter');
+      await notificationAdapter.sendNotification({
+        userId: renterId,
+        title: 'Rental Update',
+        body: 'Your garment has cleared QC2 inspection at the hub!'
+      });
+
+      const res = await request(app)
+        .get('/api/v1/notifications')
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+
+      const notifId = res.body.data[0].id;
+      const readRes = await request(app)
+        .patch(`/api/v1/notifications/${notifId}/read`)
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(readRes.status).toBe(200);
+      expect(readRes.body.data.marked).toBe(true);
+    });
+
+    test('ML QC stub enqueues media inspection job and analyzes garment image', async () => {
+      const { mlClient, mlQueue } = require('../../src/modules/ml');
+      
+      const job = await mlQueue.enqueueMediaInspection({
+        listingId: closedOrder.listingId.toString(),
+        photos: ['/uploads/sample-anarkali.jpg']
+      });
+
+      expect(job).toHaveProperty('id');
+      expect(job.name).toBe('inspect_garment_media');
+
+      const analysis = await mlClient.inspectImage({
+        imageUrl: '/uploads/sample-anarkali.jpg',
+        listingId: closedOrder.listingId.toString()
+      });
+
+      expect(analysis.passed).toBe(true);
+      expect(analysis.confidenceScore).toBeGreaterThan(0.9);
+      expect(analysis.defects.stainDetected).toBe(false);
+      expect(analysis.engine).toBe('loopwear-cv-stub-v1');
+    });
   });
 
   describe('Protected Nightly Cron Endpoint', () => {
