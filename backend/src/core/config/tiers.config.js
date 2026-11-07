@@ -79,3 +79,4 @@ const tierConfig = {
 };
 
 module.exports = tierConfig;
+

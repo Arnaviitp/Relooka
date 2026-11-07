@@ -39,3 +39,4 @@ class HubService {
 }
 
 module.exports = new HubService();
+

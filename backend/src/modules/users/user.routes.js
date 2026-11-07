@@ -19,3 +19,4 @@ router.post('/admin/id-reviews/:userId', authenticate, requireRole('admin'), use
 router.patch('/admin/:userId/loopwear-score', authenticate, requireRole('admin'), userController.setLoopWearScore);
 
 module.exports = router;
+

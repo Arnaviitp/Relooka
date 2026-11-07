@@ -41,3 +41,4 @@ export default function TierBadge({ tier = 'Silver', showIcon = true, size = 'sm
     </span>
   );
 }
+

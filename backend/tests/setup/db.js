@@ -1,10 +1,21 @@
+const path = require('path');
+const fs = require('fs');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 
 let mongoServer;
 
 async function setupTestDB() {
-  mongoServer = await MongoMemoryServer.create();
+  const localTempDir = path.resolve(__dirname, '../../.mongo-temp');
+  const runDbPath = path.join(localTempDir, `db-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+  fs.mkdirSync(runDbPath, { recursive: true });
+
+  mongoServer = await MongoMemoryServer.create({
+    instance: {
+      dbPath: runDbPath,
+      tmpDir: localTempDir
+    }
+  });
   const uri = mongoServer.getUri();
   await mongoose.connect(uri);
   return uri;

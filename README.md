@@ -370,3 +370,4 @@ All project dependencies have been verified to permit free commercial use withou
 - [ ] **Automated ML QC Service**: When funded, deploy the planned FastAPI `ml-service/app.py` microservice to analyze lender photos for stains and tears automatically.
 - [ ] **Live Payment Gateway**: Plug in live Razorpay or Stripe API keys when bank account and KYC are completed.
 - [ ] **Third-Party Logistics (3PL)**: Implement vendor adapter for Porter or Dunzo API when local courier partnership contracts are signed.
+

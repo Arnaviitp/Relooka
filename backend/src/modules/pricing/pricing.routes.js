@@ -7,3 +7,4 @@ router.post('/quote', optionalAuthenticate, pricingController.calculateQuote);
 router.get('/config', pricingController.getConfig);
 
 module.exports = router;
+

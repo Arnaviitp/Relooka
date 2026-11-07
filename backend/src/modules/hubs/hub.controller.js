@@ -35,3 +35,4 @@ class HubController {
 }
 
 module.exports = new HubController();
+

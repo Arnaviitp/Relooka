@@ -9,3 +9,4 @@ router.get('/:id', hubController.getHubById);
 router.post('/', authenticate, requireRole('admin'), hubController.createHub);
 
 module.exports = router;
+

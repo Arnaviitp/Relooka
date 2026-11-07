@@ -37,3 +37,4 @@ const defaultPricingConfig = {
 };
 
 module.exports = defaultPricingConfig;
+

@@ -156,3 +156,4 @@ module.exports = {
   createQueue,
   defaultQueue: createQueue('loopwear_jobs')
 };
+

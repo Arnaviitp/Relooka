@@ -201,3 +201,4 @@ module.exports = {
   ORDER_STATES,
   ALLOWED_TRANSITIONS
 };
+

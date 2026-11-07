@@ -110,3 +110,4 @@ module.exports = {
   MockDeliveryProvider,
   deliveryProvider: new MockDeliveryProvider()
 };
+

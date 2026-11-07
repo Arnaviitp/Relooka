@@ -54,3 +54,4 @@ const hubSchema = new mongoose.Schema(
 const Hub = mongoose.model('Hub', hubSchema);
 
 module.exports = Hub;
+

@@ -11,3 +11,4 @@ router.post('/nightly-recompute', requireCronSecretOrAdmin, tierController.trigg
 router.post('/recompute/:userId', authenticate, requireRole('admin'), tierController.recomputeUserTier);
 
 module.exports = router;
+

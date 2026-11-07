@@ -359,3 +359,4 @@ describe('Milestone 4: Order Lifecycle State Machine, Deposit Ledger & Handover'
     expect(closeRes.body.data.depositLedger.deductions[0].amount).toBe(damageAmount);
   });
 });
+

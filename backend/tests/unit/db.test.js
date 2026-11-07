@@ -20,3 +20,4 @@ describe('Database Setup Test', () => {
     expect(found.name).toBe('LoopWear DB Check');
   });
 });
+

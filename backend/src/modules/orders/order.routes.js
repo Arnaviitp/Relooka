@@ -27,3 +27,4 @@ router.post('/:id/deliver-lender', requireRole('admin', 'delivery_agent'), order
 router.post('/:id/close', requireRole('admin', 'hub_staff'), orderController.closeOrder);
 
 module.exports = router;
+

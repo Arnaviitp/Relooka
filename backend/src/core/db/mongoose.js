@@ -27,7 +27,16 @@ async function connectDB(uri = null) {
       try {
         const { MongoMemoryServer } = require('mongodb-memory-server');
         if (!global.__DEV_MONGO_SERVER__) {
-          global.__DEV_MONGO_SERVER__ = await MongoMemoryServer.create();
+          const fs = require('fs');
+          const path = require('path');
+          const devTemp = path.resolve(__dirname, '../../../.mongo-temp');
+          if (!fs.existsSync(devTemp)) fs.mkdirSync(devTemp, { recursive: true });
+          global.__DEV_MONGO_SERVER__ = await MongoMemoryServer.create({
+            instance: {
+              dbPath: path.join(devTemp, 'dev-db'),
+              tmpDir: devTemp
+            }
+          });
         }
         const memUri = global.__DEV_MONGO_SERVER__.getUri();
         const conn = await mongoose.connect(memUri, { autoIndex: true });

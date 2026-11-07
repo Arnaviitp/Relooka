@@ -250,3 +250,4 @@ userSchema.methods.setIdVerificationDetails = function ({ idType, rawIdNumber, n
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+

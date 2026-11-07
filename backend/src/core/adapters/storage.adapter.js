@@ -98,3 +98,4 @@ module.exports = {
   FreeMediaStorageAdapter,
   storageAdapter: createStorageAdapter()
 };
+

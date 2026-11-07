@@ -74,3 +74,4 @@ module.exports = {
   SmtpMailAdapter,
   mailAdapter: createMailAdapter()
 };
+

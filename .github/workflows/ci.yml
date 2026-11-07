@@ -56,3 +56,4 @@ jobs:
           else
             echo "Secrets not configured or running in dry-run mode."
           fi
+

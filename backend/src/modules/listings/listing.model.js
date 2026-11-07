@@ -128,3 +128,4 @@ listingSchema.index({ dailyRent: 1 });
 const Listing = mongoose.model('Listing', listingSchema);
 
 module.exports = Listing;
+

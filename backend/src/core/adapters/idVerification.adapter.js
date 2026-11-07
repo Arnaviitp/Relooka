@@ -100,3 +100,4 @@ module.exports = {
   FuturePaidVerifierStub,
   idVerificationAdapter: new ManualAdminIdVerificationAdapter()
 };
+

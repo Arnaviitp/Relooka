@@ -106,3 +106,4 @@ class ListingController {
 }
 
 module.exports = new ListingController();
+

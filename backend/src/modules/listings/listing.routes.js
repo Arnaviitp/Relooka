@@ -31,3 +31,4 @@ router.patch('/:id/verify', authenticate, requireRole('admin'), listingControlle
 router.patch('/:id/qc/:qcType', authenticate, requireRole('admin', 'hub_staff'), listingController.recordQC);
 
 module.exports = router;
+

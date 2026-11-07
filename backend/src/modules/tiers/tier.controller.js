@@ -23,3 +23,4 @@ class TierController {
 }
 
 module.exports = new TierController();
+

@@ -29,3 +29,4 @@ class PricingController {
 }
 
 module.exports = new PricingController();
+
