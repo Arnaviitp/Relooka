@@ -32,6 +32,8 @@ LoopWear is engineered under an absolute **Zero-Budget Rule**:
 
 ## 🏗️ Architecture & System Flow
 
+> 📄 **Technical Deep-Dive for Leads:** For the comprehensive architectural presentation, Mermaid state machine diagrams, security compliance matrix, and swappable adapter specifications, see [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md).
+
 LoopWear is structured as a **Node.js Express Modular Monolith** with a **React + Vite** frontend.
 
 ```

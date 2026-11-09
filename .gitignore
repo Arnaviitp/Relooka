@@ -10,3 +10,4 @@ uploads
 
 .mongo-temp
 test_mongo.js
+*.zip
