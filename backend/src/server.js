@@ -1,6 +1,6 @@
 const app = require('./app');
 const env = require('./core/config/env');
-const { connectDB } = require('./core/db/mongoose');
+const { connectDB, disconnectDB } = require('./core/db/mongoose');
 const { seedDatabase } = require('./core/db/seed');
 
 const PORT = env.PORT || 5000;
@@ -21,7 +21,7 @@ async function startServer() {
 
     const server = app.listen(PORT, env.HOST, () => {
       console.log(`\n======================================================`);
-      console.log(`🚀 LoopWear (Closet Circle) Monolith Server Running!`);
+      console.log(`🚀 ${env.APP_NAME} Monolith Server Running!`);
       console.log(`   Port:         ${PORT}`);
       console.log(`   Environment:  ${env.NODE_ENV}`);
       console.log(`   Health Check: http://localhost:${PORT}/api/v1/health`);
@@ -32,8 +32,14 @@ async function startServer() {
 
     const shutdown = async (signal) => {
       console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
-      server.close(() => {
+      server.close(async () => {
         console.log('[Server] HTTP server closed.');
+        try {
+          await disconnectDB();
+          console.log('[MongoDB] Connection closed.');
+        } catch (dbErr) {
+          console.error('[MongoDB] Error during disconnect:', dbErr.message);
+        }
         process.exit(0);
       });
     };

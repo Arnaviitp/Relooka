@@ -1,0 +1,26 @@
+name: relooka
+description: ReLooka - rent pre-loved ethnic wear.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.2
+  google_fonts: ^6.2.1
+  camera: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # Put your real product / hero photos here and reference them in
+  # product_service.dart (imageUrl) or page_shell.dart (HeroBanner.imageUrl).
+  # assets:
+  #   - assets/images/

@@ -17,13 +17,13 @@ const idVerificationSchema = new mongoose.Schema(
   {
     idType: {
       type: String,
-      enum: ['aadhaar', 'voter_card', 'ration_card'],
+      enum: ['aadhaar', 'voter_card', 'ration_card', 'passport', 'driving_licence'],
       default: null
     },
-    // Only the last 4 characters masked, e.g. "XXXX9012"
+    // Only the last 4 characters masked, e.g. "XXXX9012" or "XXXX-XXXX-1234"
     maskedRef: {
       type: String,
-      maxlength: 12,
+      maxlength: 30,
       default: null
     },
     // Encrypted at rest using AES-256-GCM
@@ -33,7 +33,7 @@ const idVerificationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['not_submitted', 'pending_review', 'verified', 'rejected'],
+      enum: ['not_submitted', 'pending_review', 'verified', 'rejected', 'manual_review'],
       default: 'not_submitted',
       index: true
     },
@@ -61,6 +61,27 @@ const idVerificationSchema = new mongoose.Schema(
     rejectionReason: {
       type: String,
       default: null
+    },
+    // Biometric Agent verification details (D:\Agents)
+    agentVerificationId: {
+      type: String,
+      default: null
+    },
+    agentVerdict: {
+      type: String,
+      default: null
+    },
+    checksSummary: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    reasonCode: {
+      type: String,
+      default: null
+    },
+    provider: {
+      type: String,
+      default: 'face_auth_agent'
     }
   },
   { _id: false }
@@ -245,6 +266,41 @@ userSchema.methods.setIdVerificationDetails = function ({ idType, rawIdNumber, n
   this.idVerification.consentTimestamp = new Date();
   this.idVerification.submittedAt = new Date();
   this.idVerification.status = 'pending_review';
+};
+
+// Method to set Face Authentication Agent results (D:\Agents)
+userSchema.methods.setAgentVerificationResult = function ({
+  idType,
+  maskedRef,
+  nameAsPrinted,
+  verificationId,
+  verdict,
+  checksSummary,
+  reasonCode
+}) {
+  if (idType) this.idVerification.idType = idType;
+  if (maskedRef) this.idVerification.maskedRef = maskedRef;
+  if (nameAsPrinted) this.idVerification.encryptedNameAsPrinted = encrypt(nameAsPrinted);
+  this.idVerification.agentVerificationId = verificationId;
+  this.idVerification.agentVerdict = verdict;
+  this.idVerification.checksSummary = checksSummary;
+  this.idVerification.reasonCode = reasonCode;
+  this.idVerification.consentGiven = true;
+  if (!this.idVerification.consentTimestamp) this.idVerification.consentTimestamp = new Date();
+  this.idVerification.submittedAt = new Date();
+  this.idVerification.provider = 'face_auth_agent';
+
+  if (verdict === 'VERIFIED') {
+    this.idVerification.status = 'verified';
+    this.idVerification.verifiedAt = new Date();
+    this.idVerification.rejectionReason = null;
+  } else if (verdict === 'MANUAL_REVIEW') {
+    this.idVerification.status = 'pending_review';
+    this.idVerification.rejectionReason = reasonCode ? `Flagged for manual review: ${reasonCode}` : 'Requires manual review';
+  } else if (verdict === 'REJECTED') {
+    this.idVerification.status = 'rejected';
+    this.idVerification.rejectionReason = reasonCode || 'Biometric verification rejected';
+  }
 };
 
 const User = mongoose.model('User', userSchema);

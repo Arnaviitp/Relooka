@@ -80,14 +80,14 @@ class AuthService {
     // 5. Send OTPs via Adapters (Real email, Console stub SMS)
     await mailAdapter.sendMail({
       to: normalizedEmail,
-      subject: 'Verify your LoopWear Account',
-      text: `Welcome to LoopWear! Your email verification code is: ${emailOtp}. Valid for 10 minutes.`,
-      html: `<h2>Welcome to LoopWear</h2><p>Your email verification code is: <strong>${emailOtp}</strong></p><p>Valid for 10 minutes.</p>`
+      subject: 'Verify your Relooka Account',
+      text: `Welcome to Relooka! Your email verification code is: ${emailOtp}. Valid for 10 minutes.`,
+      html: `<h2>Welcome to Relooka</h2><p>Your email verification code is: <strong>${emailOtp}</strong></p><p>Valid for 10 minutes.</p>`
     });
 
     await smsAdapter.sendSms({
       to: normalizedPhone,
-      message: `LoopWear OTP: ${phoneOtp}. Valid for 10 minutes.`
+      message: `Relooka OTP: ${phoneOtp}. Valid for 10 minutes.`
     });
 
     const tokens = this._generateTokens(user);
@@ -190,7 +190,7 @@ class AuthService {
       await user.save();
       await mailAdapter.sendMail({
         to: user.email,
-        subject: 'LoopWear Verification Code',
+        subject: 'Relooka Verification Code',
         text: `Your new email verification OTP is: ${newOtp}`
       });
     } else {
@@ -198,7 +198,7 @@ class AuthService {
       await user.save();
       await smsAdapter.sendSms({
         to: user.phone,
-        message: `Your new LoopWear OTP is: ${newOtp}`
+        message: `Your new Relooka OTP is: ${newOtp}`
       });
     }
 

@@ -12,8 +12,16 @@ router.get('/me/tier', authenticate, userController.getTierInfo);
 router.get('/me/cart', authenticate, userController.getCartView);
 router.get('/me/info', authenticate, userController.getUserInfo);
 
-// ID Verification submission
+// ID Verification submission (Legacy / manual)
 router.post('/me/id-verification', authenticate, userController.submitIdVerification);
+
+// Face Authentication Agent (D:\Agents) routes
+router.get('/face-auth/health', userController.getFaceAuthHealth);
+router.post('/me/face-auth/session', authenticate, userController.createFaceAuthSession);
+router.post('/me/face-auth/document', authenticate, userController.uploadFaceAuthDocument);
+router.post('/me/face-auth/live-session', authenticate, userController.initiateFaceAuthLiveSession);
+router.post('/me/face-auth/frames', authenticate, userController.submitFaceAuthFrames);
+router.post('/me/face-auth/complete', authenticate, userController.completeFaceAuth);
 
 // Admin review endpoints
 router.get('/admin/id-reviews', authenticate, requireRole('admin'), userController.getPendingIdReviews);

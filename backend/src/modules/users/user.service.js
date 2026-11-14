@@ -1,6 +1,7 @@
 const User = require('./user.model');
 const AppError = require('../../core/utils/AppError');
 const tierConfig = require('../../core/config/tiers.config');
+const { idVerificationAdapter } = require('../../core/adapters/idVerification.adapter');
 
 class UserService {
   async getUserById(userId) {
@@ -105,7 +106,12 @@ class UserService {
         maskedRef: u.idVerification.maskedRef,
         nameAsPrinted: u.idVerification.nameAsPrinted,
         status: u.idVerification.status,
-        submittedAt: u.idVerification.submittedAt
+        submittedAt: u.idVerification.submittedAt,
+        agentVerificationId: u.idVerification.agentVerificationId,
+        agentVerdict: u.idVerification.agentVerdict,
+        checksSummary: u.idVerification.checksSummary,
+        reasonCode: u.idVerification.reasonCode,
+        provider: u.idVerification.provider || 'face_auth_agent'
       })),
       pagination: {
         page: Number(page),
@@ -268,6 +274,111 @@ class UserService {
       },
       pastTransactions,
       maskedSavedPaymentDetails: maskedPayment
+    };
+  }
+
+  // ==========================================
+  // Face Authentication Agent (D:\Agents) Integration
+  // ==========================================
+
+  async checkFaceAuthHealth() {
+    return await idVerificationAdapter.checkHealth();
+  }
+
+  async createFaceAuthSession(userId) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+
+    const session = await idVerificationAdapter.createVerificationSession({
+      idempotencyKey: `user_${userId}_${Date.now()}`
+    });
+
+    user.idVerification.agentVerificationId = session.verification_id;
+    await user.save();
+
+    return session;
+  }
+
+  async uploadFaceAuthDocument(userId, { verificationId, imageBase64, documentType, nameAsPrinted, consentGiven }) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+
+    if (consentGiven) {
+      user.idVerification.consentGiven = true;
+      user.idVerification.consentTimestamp = new Date();
+    }
+
+    const docResult = await idVerificationAdapter.uploadDocument({
+      verificationId,
+      imageBase64,
+      documentType
+    });
+
+    if (docResult.masked_id_number) {
+      user.idVerification.maskedRef = docResult.masked_id_number;
+    }
+    if (docResult.document_type) {
+      user.idVerification.idType = docResult.document_type;
+    }
+    if (nameAsPrinted) {
+      const { encrypt } = require('../../core/utils/crypto');
+      user.idVerification.encryptedNameAsPrinted = encrypt(nameAsPrinted);
+    }
+    await user.save();
+
+    return docResult;
+  }
+
+  async initiateFaceAuthLiveSession(userId, { verificationId }) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+
+    return await idVerificationAdapter.initiateLiveSession({ verificationId });
+  }
+
+  async submitFaceAuthFrames(userId, { verificationId, framesBase64 }) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+
+    return await idVerificationAdapter.submitFrames({ verificationId, framesBase64 });
+  }
+
+  async completeFaceAuth(userId, { verificationId, documentType, maskedRef, nameAsPrinted }) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+
+    const result = await idVerificationAdapter.completeVerification({ verificationId });
+
+    user.setAgentVerificationResult({
+      idType: documentType || user.idVerification.idType,
+      maskedRef: maskedRef || user.idVerification.maskedRef,
+      nameAsPrinted: nameAsPrinted || user.name,
+      verificationId,
+      verdict: result.status,
+      checksSummary: result.checks,
+      reasonCode: result.reason_code
+    });
+
+    await user.save();
+
+    // DPDPA compliance: trigger automated artifact shredding on agent
+    idVerificationAdapter.deleteArtifacts({ verificationId }).catch(() => {});
+
+    return {
+      status: result.status,
+      checks: result.checks,
+      reason_code: result.reason_code,
+      user: {
+        id: user._id,
+        idVerification: {
+          status: user.idVerification.status,
+          idType: user.idVerification.idType,
+          maskedRef: user.idVerification.maskedRef,
+          nameAsPrinted: user.idVerification.nameAsPrinted,
+          agentVerdict: user.idVerification.agentVerdict,
+          verifiedAt: user.idVerification.verifiedAt
+        }
+      }
     };
   }
 }

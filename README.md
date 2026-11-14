@@ -1,7 +1,15 @@
-# LoopWear (Closet Circle) 👗🔄
+# Relooka 👗🔄
 
-> **Peer-to-Peer Luxury Clothing Rental Platform in India**  
+> **Peer-to-Peer Luxury & Occasion Clothing Rental Platform**  
 > Lenders list ethnic and luxury outfits, renters rent them, and the platform orchestrates logistics, dual quality checks (QC1/QC2), sanitization, and delivery exclusively through local partner laundry hubs.
+
+---
+
+## 🌐 Live Access & Deployment
+- **Live Cloudflare Edge**: [https://photograph-foto-alive-simple.trycloudflare.com](https://photograph-foto-alive-simple.trycloudflare.com)
+- **GitHub Pages (Frontend)**: [https://arnaviitp.github.io/Relooka/](https://arnaviitp.github.io/Relooka/)
+- **API Health**: `https://photograph-foto-alive-simple.trycloudflare.com/api/v1/health`
+- **Swagger Docs**: `https://photograph-foto-alive-simple.trycloudflare.com/api-docs`
 
 ---
 
@@ -311,7 +319,7 @@ When seed funding or revenue is achieved, the following swappable adapters can b
 
 | Component | Current Zero-Budget Implementation | Funded Production Upgrade | Swappable Adapter |
 |---|---|---|---|
-| **Identity Verification** | Manual Admin Review Queue (Masked ref <=4 chars, printed name) | Instant Aadhaar / DigiLocker / Voter OCR API (Setu, Karza, HyperVerge) | `idVerification.adapter.js` (Stub already in place) |
+| **Identity Verification** | Standalone AI Face Auth Agent (`D:\Agents`) + Manual Admin Queue | Instant Aadhaar / DigiLocker / Voter OCR API (Setu, Karza, HyperVerge) | `idVerification.adapter.js` (`FaceAuthAgentAdapter`) |
 | **SMS Gateway** | Console Stub (Email OTP is the real production channel) | Fast2SMS / Gupshup / Twilio Transactional SMS Route | `sms.adapter.js` |
 | **Payment Gateway** | Built-in MockGateway + Razorpay Test Mode | Live Razorpay / Stripe Payments with automatic escrow payouts | `payment.adapter.js` |
 | **Third-Party Logistics** | MockDeliveryProvider (in-house delivery agents) | Dunzo / Porter / Shadowfax B2B Delivery API integration | `delivery.adapter.js` |

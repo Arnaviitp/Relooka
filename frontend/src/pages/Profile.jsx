@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import TierBadge from '../components/TierBadge';
+import FaceAuthModal from '../components/FaceAuthModal';
 import {
   ShieldCheck,
   Award,
@@ -11,7 +12,9 @@ import {
   Clock,
   Lock,
   FileText,
-  User
+  User,
+  ScanFace,
+  Camera
 } from 'lucide-react';
 
 export default function Profile() {
@@ -27,6 +30,7 @@ export default function Profile() {
   const [idSubmitting, setIdSubmitting] = useState(false);
   const [idMessage, setIdMessage] = useState('');
   const [idError, setIdError] = useState('');
+  const [isFaceAuthModalOpen, setIsFaceAuthModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadTier() {
@@ -180,26 +184,84 @@ export default function Profile() {
             </div>
 
             {user.idVerification?.status === 'verified' ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 space-y-1">
-                <div className="font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Government ID Verified</span>
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 space-y-2">
+                <div className="font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Government ID Verified</span>
+                  </div>
+                  {user.idVerification?.agentVerdict === 'VERIFIED' && (
+                    <span className="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <ScanFace className="w-3 h-3" />
+                      <span>Face Auth Agent</span>
+                    </span>
+                  )}
                 </div>
-                <div>ID Type: <strong className="capitalize">{user.idVerification?.idType}</strong></div>
-                <div>Masked Reference: <strong className="font-mono">{user.idVerification?.maskedRef}</strong></div>
-                <div>Printed Name: <strong>{user.idVerification?.nameAsPrinted}</strong></div>
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-emerald-200/60">
+                  <div>ID Type: <strong className="capitalize">{user.idVerification?.idType}</strong></div>
+                  <div>Masked Ref: <strong className="font-mono">{user.idVerification?.maskedRef}</strong></div>
+                  <div>Printed Name: <strong>{user.idVerification?.nameAsPrinted}</strong></div>
+                  <div>Verified: <strong>{user.idVerification?.verifiedAt ? new Date(user.idVerification.verifiedAt).toLocaleDateString() : 'Verified'}</strong></div>
+                </div>
               </div>
             ) : user.idVerification?.status === 'pending_review' ? (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-1">
-                <div className="font-semibold flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-amber-600" />
-                  <span>Review Pending by Operations Team</span>
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-2">
+                <div className="font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-600" />
+                    <span>Review Pending by Operations Team</span>
+                  </div>
+                  {user.idVerification?.agentVerdict && (
+                    <span className="text-[10px] bg-amber-200 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                      AI: {user.idVerification.agentVerdict}
+                    </span>
+                  )}
                 </div>
                 <div>Masked Reference: <strong className="font-mono">{user.idVerification?.maskedRef}</strong></div>
-                <p className="text-[11px] text-amber-700 mt-1">Our team typically reviews within 2-4 hours.</p>
+                <p className="text-[11px] text-amber-700 mt-1">Our compliance team reviews pending submissions within 2-4 hours.</p>
               </div>
             ) : (
-              <form onSubmit={handleIdSubmit} className="space-y-4 pt-2">
+              <div className="space-y-4 pt-1">
+                {/* Instant AI Face Authentication Agent Card */}
+                <div className="p-4 bg-gradient-to-br from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200 rounded-2xl space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                        <ScanFace className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-bold text-slate-900 text-xs">Instant AI Face Auth Agent</h4>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 uppercase tracking-wider">
+                            Automated
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          YuNet &bull; SFace &bull; MiniFASNetV2 temporal anti-spoofing
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-emerald-900 leading-relaxed">
+                    Verify government ID instantly with camera selfie matching in 30 seconds. Zero raw biometrics stored.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsFaceAuthModalOpen(true)}
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm transition-all"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Verify with Face Auth Agent</span>
+                  </button>
+                </div>
+
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400">or manual admin queue</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <form onSubmit={handleIdSubmit} className="space-y-4 pt-1">
                 {idError && (
                   <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 shrink-0" />
@@ -280,9 +342,10 @@ export default function Profile() {
                   {idSubmitting ? 'Encrypting & Submitting...' : 'Submit for Verification'}
                 </button>
               </form>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+      </div>
 
         {/* Right Column: RFM Tier Engine Breakdown & Benefits */}
         <div className="md:col-span-6 space-y-6">
@@ -344,6 +407,12 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      <FaceAuthModal
+        isOpen={isFaceAuthModalOpen}
+        onClose={() => setIsFaceAuthModalOpen(false)}
+        onSuccess={() => refreshUser()}
+      />
     </div>
   );
 }

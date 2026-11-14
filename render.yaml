@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: relooka
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_NAME
+        value: Relooka
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: ID_VERIFICATION_DRIVER
+        value: face_auth_agent

@@ -8,11 +8,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(5000),
   HOST: z.string().default('0.0.0.0'),
-  APP_NAME: z.string().default('LoopWear'),
+  APP_NAME: z.string().default('Relooka'),
   CLIENT_URL: z.string().default('http://localhost:5173'),
 
   // Database
-  MONGO_URI: z.string().default('mongodb://127.0.0.1:27017/loopwear'),
+  MONGO_URI: z.string().default('mongodb://127.0.0.1:27017/relooka'),
 
   // Queue
   QUEUE_TYPE: z.enum(['memory', 'bullmq']).default('memory'),
@@ -38,7 +38,7 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  MAIL_FROM: z.string().default('LoopWear <noreply@loopwear.in>'),
+  MAIL_FROM: z.string().default('Relooka <noreply@relooka.in>'),
 
   SMS_DRIVER: z.enum(['console']).default('console'),
 
@@ -54,7 +54,12 @@ const envSchema = z.object({
 
   DELIVERY_DRIVER: z.enum(['mock']).default('mock'),
 
-  ID_VERIFICATION_DRIVER: z.enum(['manual_admin', 'stub']).default('manual_admin')
+  ID_VERIFICATION_DRIVER: z.enum(['manual_admin', 'stub', 'face_auth_agent']).default('face_auth_agent'),
+
+  // Face Authentication Agent (D:\Agents) Integration
+  FACE_AUTH_AGENT_URL: z.string().default('http://127.0.0.1:8000/api/v1'),
+  FACE_AUTH_API_KEY: z.string().default('dev-test-api-key-1'),
+  FACE_AUTH_TENANT_ID: z.string().default('relooka')
 });
 
 let validatedEnv;

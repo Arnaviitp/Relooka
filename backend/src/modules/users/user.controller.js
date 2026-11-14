@@ -107,6 +107,82 @@ class UserController {
       next(err);
     }
   }
+
+  // ==========================================
+  // Face Authentication Agent (D:\Agents) Handlers
+  // ==========================================
+
+  async getFaceAuthHealth(req, res, next) {
+    try {
+      const health = await userService.checkFaceAuthHealth();
+      return successResponse(res, health, 'Face Auth Agent health checked');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async createFaceAuthSession(req, res, next) {
+    try {
+      const session = await userService.createFaceAuthSession(req.user.id);
+      return successResponse(res, session, 'Face Auth session initiated', 201);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async uploadFaceAuthDocument(req, res, next) {
+    try {
+      const { verificationId, imageBase64, documentType, nameAsPrinted, consentGiven } = req.body;
+      const result = await userService.uploadFaceAuthDocument(req.user.id, {
+        verificationId,
+        imageBase64,
+        documentType,
+        nameAsPrinted,
+        consentGiven
+      });
+      return successResponse(res, result, 'Document processed by Face Auth Agent');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async initiateFaceAuthLiveSession(req, res, next) {
+    try {
+      const { verificationId } = req.body;
+      const challenge = await userService.initiateFaceAuthLiveSession(req.user.id, { verificationId });
+      return successResponse(res, challenge, 'Active challenge issued by Face Auth Agent');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async submitFaceAuthFrames(req, res, next) {
+    try {
+      const { verificationId, framesBase64 } = req.body;
+      const result = await userService.submitFaceAuthFrames(req.user.id, {
+        verificationId,
+        framesBase64
+      });
+      return successResponse(res, result, 'Live frames evaluated by PAD agent');
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async completeFaceAuth(req, res, next) {
+    try {
+      const { verificationId, documentType, maskedRef, nameAsPrinted } = req.body;
+      const result = await userService.completeFaceAuth(req.user.id, {
+        verificationId,
+        documentType,
+        maskedRef,
+        nameAsPrinted
+      });
+      return successResponse(res, result, 'Face biometric verification completed');
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new UserController();

@@ -1,7 +1,7 @@
 {
-  "name": "loopwear-backend",
+  "name": "relooka-backend",
   "version": "1.0.0",
-  "description": "LoopWear (Closet Circle) - Peer-to-peer clothing rental platform backend",
+  "description": "Relooka - Peer-to-peer clothing rental platform backend",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -37,4 +38,3 @@
   },
   "license": "MIT"
 }
-

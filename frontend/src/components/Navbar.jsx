@@ -44,11 +44,11 @@ export default function Navbar() {
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold shadow-md shadow-emerald-600/20">
-                LW
+                RLK
               </div>
               <div className="flex flex-col">
                 <span className="font-serif-luxury text-xl font-bold tracking-tight text-slate-900 leading-none">
-                  LoopWear
+                  Relooka
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-emerald-600 font-semibold">
                   Closet Circle

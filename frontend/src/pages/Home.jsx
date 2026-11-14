@@ -10,7 +10,8 @@ import {
   RotateCcw,
   CheckCircle2,
   Award,
-  ArrowRight
+  ArrowRight,
+  ScanFace
 } from 'lucide-react';
 
 export default function Home() {
@@ -80,8 +81,8 @@ export default function Home() {
                   <span>Secure Deposit Ledger</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Verified Recipient Handover</span>
+                  <ScanFace className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>AI Face & ID Agent Verified</span>
                 </div>
               </div>
             </div>

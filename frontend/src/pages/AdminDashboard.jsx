@@ -10,7 +10,8 @@ import {
   Search,
   AlertCircle,
   Bell,
-  Check
+  Check,
+  ScanFace
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -153,18 +154,47 @@ export default function AdminDashboard() {
           <div className="divide-y divide-slate-100">
             {reviews.map((r) => (
               <div key={r.userId} className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm text-slate-900">{r.name}</span>
                     <span className="text-xs text-slate-500 font-mono">({r.email})</span>
+                    {r.agentVerdict && (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                        r.agentVerdict === 'VERIFIED'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : r.agentVerdict === 'MANUAL_REVIEW'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}>
+                        <ScanFace className="w-3 h-3" />
+                        <span>AI Agent: {r.agentVerdict}</span>
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-slate-600 flex items-center gap-3">
+                  <div className="text-xs text-slate-600 flex items-center gap-3 flex-wrap">
                     <span>ID Type: <strong className="capitalize">{r.idType}</strong></span>
                     <span>•</span>
                     <span>Masked Ref: <strong className="font-mono text-emerald-700">{r.maskedRef}</strong></span>
                     <span>•</span>
                     <span>Name as Printed: <strong>{r.nameAsPrinted || 'N/A'}</strong></span>
+                    {r.reasonCode && (
+                      <>
+                        <span>•</span>
+                        <span className="text-amber-700 font-mono">Reason: {r.reasonCode}</span>
+                      </>
+                    )}
                   </div>
+                  {r.checksSummary && (
+                    <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-0.5">
+                      <span>Doc OCR: <strong>{r.checksSummary.document_readability || 'PASSED'}</strong></span>
+                      <span>•</span>
+                      <span>Face Quality: <strong>{r.checksSummary.face_quality || 'PASSED'}</strong></span>
+                      <span>•</span>
+                      <span>Liveness PAD: <strong>{r.checksSummary.liveness || 'PASSED'}</strong></span>
+                      <span>•</span>
+                      <span>SFace Match: <strong>{r.checksSummary.face_match || 'PASSED'}</strong></span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">

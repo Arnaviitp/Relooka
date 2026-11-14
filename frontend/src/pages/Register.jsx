@@ -289,7 +289,9 @@ export default function Register() {
                       onChange={(e) => setFormData({ ...formData, idType: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
-                      <option value="aadhaar">Aadhaar Card</option>
+                      <option value="aadhaar">Aadhaar Card (UIDAI)</option>
+                      <option value="passport">Passport</option>
+                      <option value="driving_licence">Driving Licence</option>
                       <option value="voter_card">Voter ID (Election Card)</option>
                       <option value="ration_card">Ration Card</option>
                     </select>

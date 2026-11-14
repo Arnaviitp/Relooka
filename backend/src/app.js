@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 const env = require('./core/config/env');
 const errorHandler = require('./core/middleware/errorHandler');
@@ -22,14 +24,52 @@ const notificationRoutes = require('./modules/notifications/notification.routes'
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware with Flutter Web compatibility
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+  })
+);
+
 app.use(
   cors({
-    origin: env.CLIENT_URL || '*',
+    origin: true,
     credentials: true
   })
 );
+
+// Compression for high performance asset delivery
+app.use(compression());
+
+// Rate limiting (skipped in test mode)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => env.NODE_ENV === 'test',
+  message: {
+    status: 'error',
+    message: 'Too many requests from this IP, please try again after 15 minutes.'
+  }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => env.NODE_ENV === 'test',
+  message: {
+    status: 'error',
+    message: 'Too many authentication attempts, please try again after 15 minutes.'
+  }
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/v1/auth/', authLimiter);
 
 // Request parsing
 app.use(express.json({ limit: '10mb' }));
@@ -67,7 +107,35 @@ app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/tiers', tierRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 
-// 404 Route Not Found
+// Serve Flutter Web Frontend (D:\Closet Circle\lib built to build/web)
+const fs = require('fs');
+const flutterWebDir = path.resolve(__dirname, '../../build/web');
+if (fs.existsSync(flutterWebDir)) {
+  app.use(
+    express.static(flutterWebDir, {
+      maxAge: '1d',
+      setHeaders: (res, filePath) => {
+        if (
+          filePath.endsWith('index.html') ||
+          filePath.endsWith('version.json') ||
+          filePath.endsWith('flutter_service_worker.js')
+        ) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        } else if (filePath.match(/\.(wasm|js|png|jpg|jpeg|svg|woff2|woff|ttf|otf)$/)) {
+          res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+        }
+      }
+    })
+  );
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/uploads')) {
+      return next(new AppError(`Endpoint ${req.originalUrl} not found on this server`, 404, 'NOT_FOUND'));
+    }
+    res.sendFile(path.join(flutterWebDir, 'index.html'));
+  });
+}
+
+// 404 Route Not Found for APIs
 app.use('*', (req, res, next) => {
   next(new AppError(`Endpoint ${req.originalUrl} not found on this server`, 404, 'NOT_FOUND'));
 });
