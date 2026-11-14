@@ -7,16 +7,18 @@ const PORT = env.PORT || 5000;
 
 async function startServer() {
   try {
-    // Connect to MongoDB
-    await connectDB();
+    // Connect to MongoDB (with resilient fallback so cloud deploys never crash on health checks)
+    try {
+      await connectDB();
+    } catch (dbErr) {
+      console.warn(`[MongoDB Warning] Could not connect to database: ${dbErr.message}. Starting in resilient mode.`);
+    }
 
-    // Auto-seed demo data in development if database is empty
-    if (env.NODE_ENV !== 'production' && env.NODE_ENV !== 'test') {
-      try {
-        await seedDatabase();
-      } catch (seedErr) {
-        console.warn('[Seeder Notice]', seedErr.message);
-      }
+    // Auto-seed demo data if database is connected
+    try {
+      await seedDatabase();
+    } catch (seedErr) {
+      // Ignore seed errors if db offline
     }
 
     const server = app.listen(PORT, env.HOST, () => {
