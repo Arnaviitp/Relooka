@@ -21,6 +21,9 @@ const mediaUploadMiddleware = upload.fields([
 router.get('/', optionalAuthenticate, listingController.getListings);
 router.get('/:id', optionalAuthenticate, listingController.getListingById);
 
+// Defect inspection for garments (AI Computer Vision)
+router.post('/inspect-defect', optionalAuthenticate, upload.single('photo'), listingController.inspectGarmentPhoto);
+
 // Lender actions
 router.post('/', authenticate, requireCapability('lender'), listingController.createListing);
 router.post('/upload', authenticate, requireCapability('lender'), mediaUploadMiddleware, listingController.uploadMedia);

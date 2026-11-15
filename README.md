@@ -40,10 +40,9 @@ LoopWear is engineered under an absolute **Zero-Budget Rule**:
 
 ## 🏗️ Architecture & System Flow
 
-> 💡 **Simple Visual Architecture Guide:** For a clean, visual, non-technical overview of how Relooka works from browser to cloud database, see [EASY_BACKEND_ARCHITECTURE.md](./EASY_BACKEND_ARCHITECTURE.md).  
 > 📄 **Technical Deep-Dive for Leads:** For the comprehensive architectural presentation, Mermaid state machine diagrams, security compliance matrix, and swappable adapter specifications, see [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md).
 
-Relooka is structured as a **Node.js Express Modular Monolith** with a **Flutter Web** frontend.
+LoopWear is structured as a **Node.js Express Modular Monolith** with a **React + Vite** frontend.
 
 ```
 LoopWear (Closet Circle)

@@ -1,6 +1,8 @@
 const { z } = require('zod');
 const listingService = require('./listing.service');
 const { successResponse } = require('../../core/utils/response');
+const mlClient = require('../ml/ml.client');
+const AppError = require('../../core/utils/AppError');
 
 const createListingSchema = z.object({
   title: z.string().min(3).max(120),
@@ -99,6 +101,24 @@ class ListingController {
         inspectorId: req.user.id
       });
       return successResponse(res, listing, `${qcType.toUpperCase()} inspection recorded`);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async inspectGarmentPhoto(req, res, next) {
+    try {
+      const file = req.file;
+      const { imageBase64, listingId, outfitName } = req.body || {};
+      let inspection;
+      if (file) {
+        inspection = await mlClient.inspectImageBuffer(file.buffer, { listingId, outfitName });
+      } else if (imageBase64) {
+        inspection = await mlClient.inspectImageBase64(imageBase64, { listingId, outfitName });
+      } else {
+        throw new AppError('An image file or imageBase64 payload is required for defect inspection', 400);
+      }
+      return successResponse(res, inspection, 'Garment defect inspection completed successfully');
     } catch (err) {
       next(err);
     }
