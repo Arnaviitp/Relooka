@@ -109,6 +109,31 @@ class MLClient {
           dominant_color_bgr: [45, 30, 160],
           color_uniformity_score: 94.2
         },
+        ai_generation_analysis: {
+          is_ai_generated: false,
+          ai_confidence_score: 0.02,
+          spectral_ratio: 0.98,
+          sensor_noise_residual: 2.3,
+          verdict: 'AUTHENTIC_CAMERA_PHOTO',
+          ai_reasons: []
+        },
+        color_and_contrast_analysis: {
+          is_acceptable_lighting: true,
+          exposure_verdict: 'OPTIMAL',
+          contrast_verdict: 'GOOD',
+          color_cast_detected: false,
+          mean_luminance: 128.5,
+          contrast_std: 42.1,
+          dynamic_range: 110.0,
+          sharpness_score: 185.0,
+          issues: []
+        },
+        structural_damage_analysis: {
+          is_ripped_or_torn: false,
+          rips_count: 0,
+          holes_count: 0,
+          damaged_defects: []
+        },
         engine: 'loopwear-cv-stub-v1'
       };
     }
@@ -159,6 +184,41 @@ class MLClient {
         estimated_coverage_pct: 85.0,
         dominant_color_bgr: [50, 40, 150],
         color_uniformity_score: 82.0
+      },
+      ai_generation_analysis: {
+        is_ai_generated: false,
+        ai_confidence_score: 0.05,
+        spectral_ratio: 0.95,
+        sensor_noise_residual: 2.1,
+        verdict: 'AUTHENTIC_CAMERA_PHOTO',
+        ai_reasons: []
+      },
+      color_and_contrast_analysis: {
+        is_acceptable_lighting: true,
+        exposure_verdict: 'OPTIMAL',
+        contrast_verdict: 'GOOD',
+        color_cast_detected: false,
+        mean_luminance: 122.0,
+        contrast_std: 38.0,
+        dynamic_range: 98.0,
+        sharpness_score: 160.0,
+        issues: []
+      },
+      structural_damage_analysis: {
+        is_ripped_or_torn: true,
+        rips_count: 0,
+        holes_count: 1,
+        damaged_defects: [
+          {
+            type: 'hole',
+            severity: 'moderate',
+            description: 'Small puncture / hole detected near bottom seam',
+            bbox: [0.72, 0.65, 0.76, 0.69],
+            pixel_area: 42,
+            confidence: 0.82,
+            penalty: 12
+          }
+        ]
       },
       engine: 'loopwear-cv-stub-v1'
     };
